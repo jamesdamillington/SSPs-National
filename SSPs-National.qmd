@@ -37,7 +37,8 @@ load_ssp <- function(filepath,varlab){
     lranks <- lsheet %>%
       group_by(year) %>%
       mutate(unit='rank',
-             value=min_rank(desc(value)))
+             #value=min_rank(desc(value)))   #high rank is low value
+             value=min_rank(value))   #high rank is high value
   
     #combine into single dataframe  
     ldat <- rbind(lsheet,lranks)
@@ -53,6 +54,7 @@ load_ssp <- function(filepath,varlab){
 ```{r}
 edu <- load_ssp("data/edu.xlsx", "edu")
 ma <- load_ssp("data/ma.xlsx", "ma")
+gdp <- load_ssp("data/gdp.xlsx", "gdp")
 
 countries <-edu %>%  
   select(OID, GID_0) %>%
@@ -62,36 +64,81 @@ countries <-edu %>%
 ```{r}
 
 #sum of squared differences function
-ssd <- function(x) {
+ssd_med <- function(x) {
   med = median(x, na.rm=TRUE)
   return(sum(sqrt((x-med)^2)))
 }
 
-out = countries
-for(nm in list(edu,ma)){
-  ssdnm = paste0(nm$variable[1],"_ssd")
-  mednm = paste0(nm$variable[1],"_med")
-  sumnm = paste0(nm$variable[1],"_sum")
-  out <- nm %>%
+#range function
+rangesr <- function(x) {
+  max = max(x, na.rm=TRUE)
+  min = min(x, na.rm=TRUE)
+  return(diff(c(min,max)))
+}
+
+out_all = countries
+for(nm in list(edu,ma, gdp)){
+  ssdmed_nm = paste0(nm$variable[1],"_ssdmed")  #sum of sqrt squared differences of medians 
+  medmed_nm = paste0(nm$variable[1],"_medmed")
+  summed_nm = paste0(nm$variable[1],"_summed")
+  sumrng_nm = paste0(nm$variable[1],"_sumrng")
+  summax_nm = paste0(nm$variable[1],"_summax")
+  summin_nm = paste0(nm$variable[1],"_summed")
+  
+  out_all <- nm %>%
   #edu %>%
     filter(unit=='rank') %>%  
     group_by(GID_0, ssp) %>%  
-    #calc median of the ssp mean year rank for each ssp
-    summarise(medrank = median(value, na.rm=TRUE)) %>%  
+    #calc median rank across years, for each ssp, for each country
+    summarise(medrank = median(value, na.rm=TRUE),
+              maxrank = max(value, na.rm=TRUE),
+              minrank = min(value, na.rm=TRUE),
+              rangerank = rangesr(value)
+              ) %>%  
     group_by(GID_0) %>%
-    #calc sum of sq differences from ssp median 
-    summarise(!!ssdnm := ssd(medrank),
-              !!mednm := median(medrank),
-              !!sumnm := sum(medrank)) %>%
-    left_join(out, ., by='GID_0')
+    summarise(!!ssdmed_nm := ssd_med(medrank),       #calc sqrt sum differences between overall median and ssp medians  
+              !!medmed_nm := median(medrank),    #calc median of ssp medians 
+              !!summed_nm := sum(medrank),       #calc sum of ssp medians
+              !!sumrng_nm := sum(rangerank),       #calc sum of ssp ranges
+              !!summax_nm := sum(maxrank),       #calc sum of ssp maxs
+              !!summin_nm := sum(minrank),       #calc sum of ssp mins
+              ) %>%   
+    
+    left_join(out_all, ., by='GID_0')
+}
+
+
+out_2100 = countries
+for(nm in list(edu,ma, gdp)){
+  ssdmed_nm = paste0(nm$variable[1],"_ssdmed")  #sum of sqrt squared differences of medians 
+  med_nm = paste0(nm$variable[1],"_med")
+  rng_nm = paste0(nm$variable[1],"_rng")
+  max_nm = paste0(nm$variable[1],"_max")
+  min_nm = paste0(nm$variable[1],"_min")
+  sum_nm = paste0(nm$variable[1],"_sum")
+  
+  out_2100 <- nm %>%
+  #edu %>%
+    filter(unit=='rank', year==2100)  %>%  
+    group_by(GID_0) %>%
+    summarise(!!ssdmed_nm := ssd_med(value),       #calc sqrt sum differences ssp ranks  
+              !!med_nm := median(value, na.rm=TRUE),    #calc median of ssp 2100 ranks 
+              !!sum_nm := sum(value),       #calc sum of ssp 2100 ranks
+              !!rng_nm := rangesr(value),       #calc ssp range
+              !!max_nm := max(value, na.rm=TRUE),       #calc sum of ssp maxs
+              !!min_nm := min(value, na.rm=TRUE),       #calc sum of ssp mins
+              ) %>%   
+    
+    left_join(out_2100, ., by='GID_0')
 }
 ```
 
 ```{r}
 
-out %>%
-  ggplot(aes(x=edu_ssd, y=ma_ssd, alpha=edu_sum, size=ma_sum)) +
-  geom_point(color = "blue", fill="black") +
+out_all %>%
+  drop_na() %>%
+  ggplot(aes(x=edu_ssdmed, y=gdp_ssdmed, size=edu_summed)) +
+  geom_point(color = "blue", fill="black", alpha=0.5) +
   geom_label_repel(aes(label = GID_0),
                   box.padding   = 0.35, 
                   point.padding = 0.5,
@@ -101,8 +148,54 @@ out %>%
 
 ```{r}
 
-out %>%
-  ggplot(aes(x=edu_ssd, y=edu_med, size=edu_sum)) +
+out_all %>%
+  drop_na() %>%
+  ggplot(aes(x=edu_sumrng, y=ma_sumrng, alpha=edu_medmed, size=ma_medmed)) +
+  geom_point(color = "blue", fill="black") +
+  geom_label_repel(aes(label = GID_0),
+                  box.padding   = 0.35, 
+                  point.padding = 0.5,
+                  segment.color = 'grey50') +
+  theme_classic()
+```
+
+
+```{r}
+out_2100 %>%
+  drop_na() %>%
+  ggplot(aes(x=edu_rng, y=gdp_rng, size=edu_med, alpha=gdp_med)) +
+  geom_point(color = "blue", fill="black") +
+  xlim(-5, NA) +
+  ylim(-5, NA) +
+  geom_abline(intercept = 0, slope = 1, 
+              linewidth = 0.35,colour='red', linetype='dashed') +
+  geom_label_repel(aes(label = GID_0),
+                   max.overlaps=20,
+                  box.padding   = 0.35, 
+                  point.padding = 0.5,
+                  segment.color = 'grey50') +
+  theme_classic()
+
+```
+
+## Interpretation:
+
+-   China has low GDP range (always ranked well in 2100), but relatively variable Educational rank
+
+-   USA always ranked well on both indicators
+
+-   Sri Lanka (LKA) has a relatively consistent GDP ranking (quite high), but highly variable education ranking
+
+-   Mozambique, Burundi, Myanmar have variable GDP ranking (intermediate), but relatively consistent (poor) education ranking
+
+
+Another way to plot these (if GDP is always the comparator) would be to show countries ranked on y-axis by gdp (med rank) then points on xaxis for the other variable value (for each ssp), then facet on x for variables (but this then does not show countries with variable vs non-variable gdp)
+
+
+```{r}
+
+out_all %>%
+  ggplot(aes(x=edu_ssdmed, y=edu_medmed, size=edu_summed)) +
   geom_point(color = "blue", fill="black", alpha=0.75) +
   geom_label_repel(aes(label = GID_0, size = 50),
                   box.padding   = 0.35, 
@@ -111,7 +204,7 @@ out %>%
   theme_classic()
 
 
-out %>%
+out_all %>%
   ggplot(aes(x=ma_ssd, y=ma_med, size=ma_sum)) +
   geom_point(color = "blue", fill="black", alpha=0.75) +
   geom_label_repel(aes(label = GID_0, size = 50),
@@ -120,5 +213,14 @@ out %>%
                   segment.color = 'grey50') +
   theme_classic()
 
+
+out_all %>%
+  ggplot(aes(x=ma_ssdmed, y=ma_medmed, size=ma_summed)) +
+  geom_point(color = "blue", fill="black", alpha=0.75) +
+  geom_label_repel(aes(label = GID_0, size = 50),
+                  box.padding   = 0.35, 
+                  point.padding = 0.5,
+                  segment.color = 'grey50') +
+  theme_classic()
 
 ```
