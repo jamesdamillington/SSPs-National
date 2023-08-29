@@ -223,7 +223,7 @@ More grey is higher overall GDP ranking (e.g. USA is in bottom left)
 
 -   Mozambique, Burundi, Myanmar have variable GDP ranking (intermediate), but relatively consistent (poor) education ranking
 
-Another way to plot these (if GDP is always the comparator) would be to show countries ranked on y-axis by gdp (med rank) then points on xaxis for the other variable value (for each ssp), then facet on x for variables (but this then does not show countries with variable vs non-variable gdp)
+
 
 #### Health
 ```{r}
@@ -277,3 +277,53 @@ out_2100 %>%
   ggplot(aes(x=tec_rng, y=gdp_rng, size=tec_med, colour=gdp_med)) +
   p2100
 ```
+
+
+**Experimental**
+Another way to plot these (if GDP is always the comparator) might be to show countries ranked on y-axis by gdp (med rank) then points on xaxis for the other variable value (for each ssp), then facet on x for variables (but this then does not show countries with variable vs non-variable gdp)
+
+However, the below shows that with 200+ countries it's hard to get this looking good. It does show a string relationship between GDP and WAP (and to some degree energy). 
+
+```{r}
+
+#create data for 2100 to trial gdp ranked plot
+
+ranks_2100 = edu
+counter = 1
+for(nm in list(edu,ma, health, gini, wap, tec)){
+  
+  if(counter == 1){ 
+    ranks_2100 <- filter(nm, unit=='rank', year==2100)  
+  } else {
+    ranks_2100 <- bind_rows(ranks_2100, filter(nm, unit=='rank', year==2100))
+  }
+  counter = counter + 1
+}
+
+#create gdp rank data
+gdp_2100 <-
+  out_2100 %>%
+  select(OID, GID_0, gdp_med)
+
+#join ranks for our metrics to gdp 
+gdp_ranks_2100 <- 
+  left_join(gdp_2100, ranks_2100, by='GID_0',suffix=c("",".y")) %>%
+  select(-ends_with(".y"))
+
+```
+
+
+```{r fig.height = 14}
+
+#plot for EDU
+gdp_ranks_2100 %>%
+  drop_na() %>%
+  arrange(gdp_med) %>%  #order countries by median SSP GDP 
+  #filter(variable=='edu') %>%
+  ggplot(aes(x=value, y=reorder(GID_0,gdp_med), colour=ssp)) +
+  geom_point(alpha=0.75) +
+  theme(axis.text.y = element_text(size=rel(0.65))) +
+  facet_grid(.~variable) 
+
+  
+```  
