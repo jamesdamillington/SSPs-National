@@ -7,7 +7,7 @@ editor: visual
 
 ## Libraries
 
-```{r}
+```{r output=FALSE}
 library(tidyr)
 library(dplyr)
 library(readxl)
@@ -68,7 +68,7 @@ countries <-edu %>%
 
 ## Calculations
 
-```{r}
+```{r output=FALSE}
 
 #root mean square error (using median)
 rmse_med <- function(x) {
@@ -101,7 +101,7 @@ for(nm in list(edu,ma, gdp, health, gini, wap, tec)){
     summarise(medrank = median(value, na.rm=TRUE),
               maxrank = max(value, na.rm=TRUE),
               minrank = min(value, na.rm=TRUE),
-              rangerank = rangesr(value)
+              rangerank = rangesr(value),
               ) %>%  
     group_by(GID_0) %>%
     summarise(!!rmsemed_nm := rmse_med(medrank), #calc rmse (median) for ssp medians 
@@ -202,7 +202,7 @@ p2100 <-
 #### All Years
 
 
-```{r}
+```{r warning=FALSE}
 out_all %>%
   drop_na() %>%
   ggplot(aes(x=edu_rmsemed, y=gdp_rmsemed, size=edu_summed, colour=gdp_summed)) +
@@ -213,7 +213,7 @@ More grey is higher overall GDP ranking (e.g. USA is in bottom left)
 
 #### 2100
 
-```{r}
+```{r warning=FALSE}
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=edu_rng, y=gdp_rng, size=edu_med, colour=gdp_med)) +
@@ -235,14 +235,14 @@ More grey is higher overall GDP ranking (e.g. USA is in bottom left)
 
 
 ### Health
-```{r}
+```{r warning=FALSE}
 out_all %>%
   drop_na() %>%
   ggplot(aes(x=health_rmsemed, y=gdp_rmsemed, size=health_summed, colour=gdp_summed)) +
   pall
 ```
 
-```{r}
+```{r warning=FALSE}
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=health_rng, y=gdp_rng, size=health_med, colour=gdp_med)) +
@@ -251,14 +251,14 @@ out_2100 %>%
 
 ### Market Access
 
-```{r}
+```{r warning=FALSE}
 out_all %>%
   drop_na() %>%
   ggplot(aes(x=ma_rmsemed, y=gdp_rmsemed, size=ma_summed, colour=gdp_summed)) +
   pall
 ```
 
-```{r}
+```{r warning=FALSE}
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=ma_rng, y=gdp_rng, size=ma_med, colour=gdp_med)) +
@@ -268,14 +268,14 @@ out_2100 %>%
 
 ### Gini
 
-```{r}
+```{r warning=FALSE}
 out_all %>%
   drop_na() %>%
   ggplot(aes(x=gini_rmsemed, y=gdp_rmsemed, size=gini_summed, colour=gdp_summed)) +
   pall
 ```
 
-```{r}
+```{r warning=FALSE}
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=gini_rng, y=gdp_rng, size=gini_med, colour=gdp_med)) +
@@ -285,14 +285,14 @@ out_2100 %>%
 
 ### Working Age Population
 
-```{r}
+```{r warning=FALSE}
 out_all %>%
   drop_na() %>%
   ggplot(aes(x=wap_rmsemed, y=gdp_rmsemed, size=wap_summed, colour=gdp_summed)) +
   pall
 ```
 
-```{r}
+```{r warning=FALSE}
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=wap_rng, y=gdp_rng, size=wap_med, colour=gdp_med)) +
@@ -301,14 +301,14 @@ out_2100 %>%
 
 ### Energy
 
-```{r}
+```{r warning=FALSE}
 out_all %>%
   drop_na() %>%
   ggplot(aes(x=tec_rmsemed, y=gdp_rmsemed, size=tec_summed, colour=gdp_summed)) +
   pall
 ```
 
-```{r}
+```{r warning=FALSE}
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=tec_rng, y=gdp_rng, size=tec_med, colour=gdp_med)) +
