@@ -144,40 +144,31 @@ for(nm in list(edu,ma, gdp, health, gini, wap, tec)){
 
 ## Plots
 
-### All years
-
-#### Education
-
 ```{r}
+#setup template https://stackoverflow.com/a/16727357
 
-p <- out_all %>%
-  drop_na() %>%
-  ggplot(aes(x=edu_rmsemed, y=gdp_rmsemed, size=edu_summed, colour=gdp_summed)) +
-  geom_point_interactive(alpha=0.5) +
-  #geom_point_interactive(aes(tooltip = GID_0, data_id=GID_0),alpha=0.5) +
-  ggtitle("All years") +
-  scale_colour_gradient(low="darkblue",high="darkgrey")+
-  xlim(-5, NA) +
-  ylim(-5, NA) +
-  geom_abline(intercept = 0, slope = 1, 
-              linewidth = 0.35,colour='red', linetype='dashed') +
-  geom_label_repel(aes(label = GID_0),
-                  alpha=0.5,
-                  max.overlaps=15,
-                  box.padding   = 0.35, 
-                  point.padding = 0.5,
-                  segment.color = 'grey50',
-                  show.legend = FALSE,
-                  color='black') +
-  theme_classic()
+pall <- 
+  list(
+    geom_point(alpha=0.75),
+    ggtitle("SSPs over all Years"),
+    scale_colour_gradient(low="darkblue",high="darkgrey"),
+    xlim(-5, NA),
+    ylim(-5, NA),
+    geom_abline(intercept = 0, slope = 1, 
+                linewidth = 0.35,colour='red', linetype='dashed'),
+    geom_label_repel(aes(label = GID_0),
+                    alpha=0.5,
+                    max.overlaps=15,
+                    box.padding   = 0.35, 
+                    point.padding = 0.5,
+                    segment.color = 'grey50',
+                    show.legend = FALSE,
+                    color='black'),
+    theme_classic()
+  )
 
-p
-#girafe(ggobj = p)
 ```
 
-More grey is higher overall GDP ranking (e.g. USA is in bottom left)
-
-### 2100
 
 ```{r}
 #setup template https://stackoverflow.com/a/16727357
@@ -203,7 +194,24 @@ p2100 <-
   )
 
 ```
-#### Education
+
+
+### Education
+
+
+#### All Years
+
+
+```{r}
+out_all %>%
+  drop_na() %>%
+  ggplot(aes(x=edu_rmsemed, y=gdp_rmsemed, size=edu_summed, colour=gdp_summed)) +
+  pall
+```
+
+More grey is higher overall GDP ranking (e.g. USA is in bottom left)
+
+#### 2100
 
 ```{r}
 out_2100 %>%
@@ -226,13 +234,12 @@ More grey is higher overall GDP ranking (e.g. USA is in bottom left)
 -   Mozambique, Burundi, Myanmar have variable GDP ranking (intermediate), but relatively consistent (poor) education ranking
 
 
-
-#### Health
+### Health
 ```{r}
-out_2100 %>%
+out_all %>%
   drop_na() %>%
-  ggplot(aes(x=health_rng, y=gdp_rng, size=health_med, colour=gdp_med)) +
-  p2100
+  ggplot(aes(x=health_rmsemed, y=gdp_rmsemed, size=health_summed, colour=gdp_summed)) +
+  pall
 ```
 
 ```{r}
@@ -242,7 +249,14 @@ out_2100 %>%
   p2100
 ```
 
-#### Market Access
+### Market Access
+
+```{r}
+out_all %>%
+  drop_na() %>%
+  ggplot(aes(x=ma_rmsemed, y=gdp_rmsemed, size=ma_summed, colour=gdp_summed)) +
+  pall
+```
 
 ```{r}
 out_2100 %>%
@@ -252,7 +266,14 @@ out_2100 %>%
 
 ```
 
-#### Gini
+### Gini
+
+```{r}
+out_all %>%
+  drop_na() %>%
+  ggplot(aes(x=gini_rmsemed, y=gdp_rmsemed, size=gini_summed, colour=gdp_summed)) +
+  pall
+```
 
 ```{r}
 out_2100 %>%
@@ -262,7 +283,14 @@ out_2100 %>%
 
 ```
 
-#### Working Age Population
+### Working Age Population
+
+```{r}
+out_all %>%
+  drop_na() %>%
+  ggplot(aes(x=wap_rmsemed, y=gdp_rmsemed, size=wap_summed, colour=gdp_summed)) +
+  pall
+```
 
 ```{r}
 out_2100 %>%
@@ -271,7 +299,14 @@ out_2100 %>%
   p2100
 ```
 
-#### Energy
+### Energy
+
+```{r}
+out_all %>%
+  drop_na() %>%
+  ggplot(aes(x=tec_rmsemed, y=gdp_rmsemed, size=tec_summed, colour=gdp_summed)) +
+  pall
+```
 
 ```{r}
 out_2100 %>%
