@@ -248,6 +248,15 @@ out_2100 %>%
   ggplot(aes(x=health_rng, y=gdp_rng, size=health_med, colour=gdp_med)) +
   p2100
 ```
+**Interpretation**
+
+-   USA has low GDP range (always ranked well in 2100), but relatively variable health rank (compared to e.g India and so USA has higher median rank)
+
+-   India always ranked well on both indicators (with low range)
+
+-   Sri Lanka (LKA) and Belize (BLZ) are located similarly for both health and gdp range (high and low respectively), but BLZ has lower GDP and health median rankings
+
+-   Mozambique, Burundi, Myanmar have variable GDP ranking (intermediate), but relatively consistent (quite low) health ranking
 
 ### Market Access
 
