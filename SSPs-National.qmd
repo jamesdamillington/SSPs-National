@@ -78,9 +78,9 @@ rmse_med <- function(x) {
 
 #range function
 rangesr <- function(x) {
-  max = max(x, na.rm=TRUE)
-  min = min(x, na.rm=TRUE)
-  return(diff(c(min,max)))
+  maxv = max(x, na.rm=TRUE)
+  minv = min(x, na.rm=TRUE)
+  return(diff(c(minv,maxv)))
 }
 
 out_all = countries
@@ -90,11 +90,12 @@ for(nm in list(edu,ma, gdp, health, gini, wap, tec)){
   summed_nm = paste0(nm$variable[1],"_summed")
   sumrng_nm = paste0(nm$variable[1],"_sumrng")
   summax_nm = paste0(nm$variable[1],"_summax")
-  summin_nm = paste0(nm$variable[1],"_summed")
+  summin_nm = paste0(nm$variable[1],"_summin")
   
   out_all <- nm %>%
   #edu %>%
     filter(unit=='rank') %>%  
+    filter(!is.na(value)) %>%
     group_by(GID_0, ssp) %>%  
     #calc median rank across years, for each ssp, for each country
     summarise(medrank = median(value, na.rm=TRUE),
@@ -127,6 +128,7 @@ for(nm in list(edu,ma, gdp, health, gini, wap, tec)){
   out_2100 <- nm %>%
   #edu %>%
     filter(unit=='rank', year==2100)  %>%  
+    filter(!is.na(value)) %>%
     group_by(GID_0) %>%
     summarise(!!rmsemed_nm := rmse_med(value),       ##calc rmse (median) for ssp ranks  
               !!med_nm := median(value, na.rm=TRUE), #calc median of ssp 2100 ranks 
