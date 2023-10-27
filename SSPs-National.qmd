@@ -14,6 +14,7 @@ library(readxl)
 library(ggplot2)
 library(ggrepel)
 library(ggiraph)
+library(viridisLite)
 ```
 
 ## Load Data
@@ -151,7 +152,8 @@ pall <-
   list(
     geom_point(alpha=0.75),
     ggtitle("SSPs over all Years"),
-    scale_colour_gradient(low="darkblue",high="darkgrey"),
+    #scale_colour_gradient(low="darkblue",high="darkgrey"),
+    scale_colour_viridis_c(),
     xlim(-5, NA),
     ylim(-5, NA),
     geom_abline(intercept = 0, slope = 1, 
@@ -176,20 +178,24 @@ pall <-
 p2100 <- 
   list(
     geom_point(alpha=0.75),
-    ggtitle("SSPs in 2100"),
-    scale_colour_gradient(low="darkblue",high="darkgrey"),
+    ggtitle("SSP Rankings in 2100"),
+    #scale_colour_gradient(low="darkblue",high="darkgrey"),
+    scale_colour_viridis_c(),
     xlim(-5, NA),
     ylim(-5, NA),
     geom_abline(intercept = 0, slope = 1, 
                 linewidth = 0.35,colour='red', linetype='dashed'),
     geom_label_repel(aes(label = GID_0),
                     alpha=0.5,
-                    max.overlaps=15,
+                    max.overlaps=10,
+                    max.time=1,
                     box.padding   = 0.35, 
                     point.padding = 0.5,
                     segment.color = 'grey50',
+                    min.segment.length = (unit(0.01, "cm")),
                     show.legend = FALSE,
-                    color='black'),
+                    color='black',
+                    size=4),
     theme_classic()
   )
 
@@ -207,6 +213,8 @@ out_all %>%
   drop_na() %>%
   ggplot(aes(x=edu_rmsemed, y=gdp_rmsemed, size=edu_summed, colour=gdp_summed)) +
   pall
+
+ggsave("svg/edu_all.svg")
 ```
 
 More grey is higher overall GDP ranking (e.g. USA is in bottom left)
@@ -217,8 +225,12 @@ More grey is higher overall GDP ranking (e.g. USA is in bottom left)
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=edu_rng, y=gdp_rng, size=edu_med, colour=gdp_med)) +
-  p2100
+  p2100 +
+  ylab("GDP (range)") +
+  xlab("Education (range)") +
+  labs(size="Education (median)", colour="GDP (median)")
 
+ggsave("svg/edu2100.svg")
 ```
 
 More grey is higher overall GDP ranking (e.g. USA is in bottom left)
@@ -246,7 +258,12 @@ out_all %>%
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=health_rng, y=gdp_rng, size=health_med, colour=gdp_med)) +
-  p2100
+  p2100 +
+  ylab("GDP (range)") +
+  xlab("Health (range)") +
+  labs(size="Health (median)", colour="GDP (median)")
+
+ggsave("svg/health2100.svg")
 ```
 **Interpretation**
 
@@ -257,6 +274,8 @@ out_2100 %>%
 -   Sri Lanka (LKA) and Belize (BLZ) are located similarly for both health and gdp range (high and low respectively), but BLZ has lower GDP and health median rankings
 
 -   Mozambique, Burundi, Myanmar have variable GDP ranking (intermediate), but relatively consistent (quite low) health ranking
+
+-  Bolivia (?BOL) has both extremely high range of health and GDP - are these correlated for BOL? (If so, why for this country and not others?)
 
 ### Market Access
 
@@ -271,9 +290,28 @@ out_all %>%
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=ma_rng, y=gdp_rng, size=ma_med, colour=gdp_med)) +
-  p2100
+  p2100 +
+  ylab("GDP (range)") +
+  xlab("Market Access (range)") +
+  labs(size="MA (median)", colour="GDP (median)")
 
+ggsave("svg/ma2100.svg")
 ```
+
+
+**Interpretation**
+
+-   USA has low GDP range (always ranked well in 2100), but relatively variable market access) rank (compared to e.g China nd India) but with relatively low median rank. What's going on here? Is there on particular SSP that USA ranks poorly on? (if so, why?)
+
+-   China (and India) always ranked well on both indicators (with low range)
+
+-   Germany (DEU) has very high market access range (but low GDP range) - this is because of SSP5 interpretation (we can see this in the pixel-level maps for example). Where are GNB and GMB? Do they stand out in the pixel-level maps too? 
+
+
+-   Mozambique, Burundi, Myanmar have variable GDP ranking (intermediate), but relatively consistent (quite low) health ranking
+
+-  In contrast to Health, Bolivia (?BOL) has low range for Market access (always low). Similarly highly variable GDP 
+
 
 ### Gini
 
@@ -288,9 +326,19 @@ out_all %>%
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=gini_rng, y=gdp_rng, size=gini_med, colour=gdp_med)) +
-  p2100
+  p2100 +
+  ylab("GDP (range)") +
+  xlab("Gini (range)") +
+  labs(size="Gini (median)", colour="GDP (median)")
 
+ggsave("svg/gini2100.svg")
 ```
+This is a mess! 
+
+Gini has the greatest range of values by country, >150 across the SSPs for MEX, PHL and GTM (all with quite low median and high GDP, so there must be one SSP in which they rank much higher than the rest) 
+
+Interestingly this is where we see some of the greatest ranges for countries with low median ranks. Shows how while countries may look good on GDP for most SSPs, there are odd SSPs where the dsitribution of wealth becomes very unequal 
+
 
 ### Working Age Population
 
@@ -305,8 +353,18 @@ out_all %>%
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=wap_rng, y=gdp_rng, size=wap_med, colour=gdp_med)) +
-  p2100
+  p2100 +
+  ylab("GDP (range)") +
+  xlab("Working Age Population (range)") +
+  labs(size="WAP (median)", colour="GDP (median)")
+
+ggsave("svg/wap2100.svg")
 ```
+
+WAP has some countries with very different position in 2100 vs over all years (e.g. USA, ESH, MMR). Why?
+
+Otherwise, countries with generally higher GDP rank (and low range) such as FRA and DEU have higher WAP range. In contrast with the reverse for countres like MOZ and BDI 
+
 
 ### Energy
 
@@ -321,8 +379,27 @@ out_all %>%
 out_2100 %>%
   drop_na() %>%
   ggplot(aes(x=tec_rng, y=gdp_rng, size=tec_med, colour=gdp_med)) +
-  p2100
+  p2100  +
+  ylab("GDP (range)") +
+  xlab("Energy (range)") +
+  labs(size="Energy (median)", colour="GDP (median)")
+
+ggsave("svg/tec2100.svg")
 ```
+
+LUX, Israel, Slovenia, Estonia stand out with high ranges on energy use. Why?
+
+India, China, USA highly ranked and low range on both. 
+
+Note that LUX has such low median GDP - because it's so small (would rank near the top for per capita)
+
+
+
+
+
+
+
+
 
 
 **Experimental**
