@@ -143,6 +143,99 @@ for(nm in list(edu,ma, gdp, health, gini, wap, tec)){
 }
 ```
 
+Calculate correlations (GDP vs metrics)
+
+```{r}
+
+edu.gdp.cor <- left_join(filter(edu, year==2100 & unit=='index'), 
+                     filter(gdp, year==2100 & unit=='billion US$2005/yr'), 
+                     by=join_by('GID_0','ssp'), 
+                     suffix=c(".edu", ".gdp")) %>%
+  group_by(ssp) %>%
+  #summarize(spearman=cor(value.edu, value.gdp, use="complete.obs", method="spearman"),
+  #          kendall=cor(value.edu, value.gdp, use="complete.obs", method="kendall")) %>%
+
+  summarise(kendall=cor.test(value.edu, value.gdp, method="kendall")$estimate,
+            pval=cor.test(value.edu, value.gdp, method="kendall")$p.value) %>%
+  mutate(capital="edu")
+  
+
+health.gdp.cor <- left_join(filter(health, year==2100 & unit=='index'), 
+                     filter(gdp, year==2100 & unit=='billion US$2005/yr'), 
+                     by=join_by('GID_0','ssp'), 
+                     suffix=c(".health", ".gdp")) %>%
+  group_by(ssp) %>%
+  #summarize(spearman=cor(value.health, value.gdp, use="complete.obs", method="spearman"),
+  #          kendall=cor(value.health, value.gdp, use="complete.obs", method="kendall")) %>%
+  summarise(kendall=cor.test(value.health, value.gdp,method="kendall")$estimate,
+              pval=cor.test(value.health, value.gdp,method="kendall")$p.value) %>%
+  mutate(capital="health")
+
+
+ma.gdp.cor <- left_join(filter(ma, year==2100 & unit=='index'), 
+                     filter(gdp, year==2100 & unit=='billion US$2005/yr'), 
+                     by=join_by('GID_0','ssp'), 
+                     suffix=c(".ma", ".gdp")) %>%
+  group_by(ssp) %>%
+  #summarize(spearman=cor(value.ma, value.gdp, use="complete.obs", method="spearman"),
+  #          kendall=cor(value.ma, value.gdp, use="complete.obs", method="kendall")) %>%
+  summarise(kendall=cor.test(value.ma, value.gdp,method="kendall")$estimate,
+              pval=cor.test(value.ma, value.gdp,method="kendall")$p.value) %>%
+  mutate(capital="ma")
+
+gini.gdp.cor <- left_join(filter(gini, year==2100 & unit=='index'), 
+                     filter(gdp, year==2100 & unit=='billion US$2005/yr'), 
+                     by=join_by('GID_0','ssp'), 
+                     suffix=c(".gini", ".gdp")) %>%
+  group_by(ssp) %>%
+  #summarize(spearman=cor(value.gini, value.gdp, use="complete.obs", method="spearman"),
+  #          kendall=cor(value.gini, value.gdp, use="complete.obs", method="kendall")) %>%
+    summarise(kendall=cor.test(value.gini, value.gdp,method="kendall")$estimate,
+              pval=cor.test(value.gini, value.gdp,method="kendall")$p.value) %>%
+  mutate(capital="gini")
+
+tec.gdp.cor <- left_join(filter(tec, year==2100 & unit=='kWh'), 
+                     filter(gdp, year==2100 & unit=='billion US$2005/yr'), 
+                     by=join_by('GID_0','ssp'), 
+                     suffix=c(".tec", ".gdp")) %>%
+  group_by(ssp) %>%
+  #summarize(spearman=cor(value.tec, value.gdp, use="complete.obs", method="spearman"),
+  #          kendall=cor(value.tec, value.gdp, use="complete.obs", method="kendall")) %>%
+    summarise(kendall=cor.test(value.tec, value.gdp, method="kendall")$estimate,
+              pval=cor.test(value.tec, value.gdp, method="kendall")$p.value) %>%
+  mutate(capital="tec")
+
+
+wap.gdp.cor <- left_join(filter(wap, year==2100 & unit=='million'), 
+                     filter(gdp, year==2100 & unit=='billion US$2005/yr'), 
+                     by=join_by('GID_0','ssp'), 
+                     suffix=c(".wap", ".gdp")) %>%
+  group_by(ssp) %>%
+  #summarize(spearman=cor(value.wap, value.gdp, use="complete.obs", method="spearman"),
+  #          kendall=cor(value.wap, value.gdp, use="complete.obs", method="kendall")) %>%
+  summarise(kendall=cor.test(value.wap, value.gdp, method="kendall")$estimate,
+            pval=cor.test(value.wap, value.gdp, method="kendall")$p.value) %>%
+  mutate(capital="wap")
+
+
+cors = bind_rows(edu.gdp.cor, 
+                 health.gdp.cor,
+                 ma.gdp.cor,
+                 gini.gdp.cor,
+                 tec.gdp.cor,
+                 wap.gdp.cor) %>%
+  mutate(ssp=factor(ssp))
+
+cors %>% ggplot(aes(x=capital, y=kendall, colour=ssp)) +
+  geom_point() +
+  scale_colour_viridis_d() +
+  ggtitle("Correlation: Human Capital vs GDP in 2100")
+
+write.csv(cors, "cors.csv", row.names=F)
+
+ggsave("svg/kendall2100.svg")
+```
+
 ## Plots
 
 ```{r}
@@ -181,6 +274,8 @@ p2100 <-
     ggtitle("SSP Rankings in 2100"),
     #scale_colour_gradient(low="darkblue",high="darkgrey"),
     scale_colour_viridis_c(),
+    #xlim(-5, 170), #fullspace
+    #ylim(-5, 170), #fullspace
     xlim(-5, NA),
     ylim(-5, NA),
     geom_abline(intercept = 0, slope = 1, 
